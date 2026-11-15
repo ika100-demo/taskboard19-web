@@ -12,7 +12,7 @@ import { MSG_SAVE_FAILED, MSG_TITLE_INVALID } from "@/lib/task-validation";
 
 const created = { id: 7, title: "Buy milk", due_date: "2026-12-24", created_at: "2026-11-15T10:00:00Z" };
 
-beforeEach(() => createTaskMock.mockReset());
+beforeEach(() => { createTaskMock.mockReset(); });
 
 describe("createTaskAction", () => {
   it("AC-001.3 creates the task and returns it", async () => {
