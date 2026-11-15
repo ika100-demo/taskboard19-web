@@ -38,6 +38,7 @@ tasks:
     covers: [AC-001.1, AC-001.2, AC-001.5]
     parallel_safe: true
     depends_on: [t1, t4]
+    done: true
 ---
 
 # Plan — 001 Show all tasks and a create form on the home page
