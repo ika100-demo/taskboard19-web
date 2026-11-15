@@ -69,6 +69,25 @@ describe("AC-001.5 listTasks failures", () => {
     expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
   });
 
+  it("AC-001.5 listTasks uses AbortSignal.timeout(5000) and the signal aborts at 5000 ms, not before", async () => {
+    vi.useFakeTimers();
+    try {
+      const spy = vi.spyOn(AbortSignal, "timeout");
+      fetchMock.mockResolvedValue(json([]));
+      await listTasks();
+      expect(spy).toHaveBeenCalledWith(5000);
+      const signal = fetchMock.mock.calls[0][1].signal as AbortSignal;
+      expect(signal.aborted).toBe(false);
+      vi.advanceTimersByTime(4999);
+      expect(signal.aborted).toBe(false);
+      vi.advanceTimersByTime(1);
+      expect(signal.aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    }
+  });
+
   it("AC-001.5 fails when the API is unreachable", async () => {
     fetchMock.mockRejectedValue(new TypeError("fetch failed"));
     expect(await reasonOf(listTasks())).toBe("network");
@@ -124,6 +143,26 @@ describe("AC-001.6 createTask failures", () => {
     fetchMock.mockRejectedValue(new TypeError("fetch failed"));
     expect(await reasonOf(createTask({ title: "x", due_date: null }))).toBe("network");
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("AC-001.6 createTask uses AbortSignal.timeout(5000) and the signal aborts at 5000 ms, not before", async () => {
+    vi.useFakeTimers();
+    try {
+      const spy = vi.spyOn(AbortSignal, "timeout");
+      fetchMock.mockResolvedValue(json(task(1, "x"), 201));
+      await createTask({ title: "x", due_date: null });
+      expect(spy).toHaveBeenCalledWith(5000);
+      const signal = fetchMock.mock.calls[0][1].signal as AbortSignal;
+      expect(signal).toBeInstanceOf(AbortSignal);
+      expect(signal.aborted).toBe(false);
+      vi.advanceTimersByTime(4999);
+      expect(signal.aborted).toBe(false);
+      vi.advanceTimersByTime(1);
+      expect(signal.aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    }
   });
 
   it("AC-001.6 fails on timeout", async () => {
