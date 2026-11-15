@@ -1,7 +1,7 @@
 ---
 spec_id: 001-show-all-tasks-and-a-create-form-on-the
 title: Show all tasks and a create form on the home page, backed by the Task API
-status: building
+status: done
 priority: P1
 shape: web-nextjs
 parent: ika100-demo/taskboard19-gitops:001-persistent-tasks-in-postgres-and-task-ui
@@ -127,3 +127,4 @@ Smoke: a read-only check that the home page loads, and an @writes check creating
 - 2026-11-15 created from the system plan, with its criteria (spec 147)
 - 2026-11-15 approved
 - 2026-11-15 building
+- 2026-11-15 done
