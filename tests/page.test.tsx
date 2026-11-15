@@ -1,38 +1,29 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import HomePage from "@/app/page";
+import { listTasks } from "@/lib/task-api";
+import { MSG_LOAD_FAILED } from "@/lib/task-validation";
+
+vi.mock("@/lib/task-api", () => ({ listTasks: vi.fn() }));
+vi.mock("@/app/actions", () => ({ createTaskAction: vi.fn() }));
 
 describe("HomePage", () => {
-  it("renders the project heading", () => {
-    render(<HomePage />);
-    expect(screen.getByRole("heading", { level: 1, name: "taskboard19-web" })).toBeInTheDocument();
+  beforeEach(() => {
+    vi.mocked(listTasks).mockReset();
   });
 
-  it("offers the two primary actions", () => {
-    render(<HomePage />);
-    expect(screen.getByRole("link", { name: "Get started" })).toHaveAttribute("href", "#get-started");
-    expect(screen.getByRole("link", { name: "Check health" })).toHaveAttribute("href", "/api/health");
-  });
-
-  it("lists what is included as accessible cards", () => {
-    render(<HomePage />);
-    const features = screen.getByRole("region", { name: "What's included" });
-    const items = within(features).getAllByRole("listitem");
-    expect(items.length).toBeGreaterThanOrEqual(5);
-    expect(within(features).getByRole("heading", { level: 3, name: "Health and readiness" })).toBeInTheDocument();
-    expect(within(features).getByRole("heading", { level: 3, name: "Metrics and tracing" })).toBeInTheDocument();
-  });
-
-  it("explains how to get started in order", () => {
-    render(<HomePage />);
-    const steps = within(screen.getByRole("region", { name: "Get started" })).getAllByRole("listitem");
-    expect(steps).toHaveLength(3);
-  });
-
-  it("keeps a single level-1 heading and ordered sections", () => {
-    render(<HomePage />);
+  it("renders a single Tasks heading and the list on success", async () => {
+    vi.mocked(listTasks).mockResolvedValue([{ id: 1, title: "Write docs", due_date: null, created_at: "2026-01-01T00:00:00Z" }]);
+    render(await HomePage());
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["What's included", "Get started"]);
+    expect(screen.getByRole("heading", { level: 1, name: "Tasks" })).toBeInTheDocument();
+    expect(screen.getByText("Write docs")).toBeInTheDocument();
+  });
+
+  it("shows the load failure message when the API call throws", async () => {
+    vi.mocked(listTasks).mockRejectedValue(new Error("boom"));
+    render(await HomePage());
+    expect(screen.getByText(MSG_LOAD_FAILED)).toBeInTheDocument();
   });
 });
